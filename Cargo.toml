@@ -1,0 +1,20 @@
+[package]
+name = "rhttp"
+version = "0.1.0"
+authors = ["Peter Aba <peter@peteraba.com>"]
+edition = "2018"
+
+[lib]
+name = "rhttp"
+crate-type = ["cdylib"]
+
+[dependencies]
+base64 = { git = "https://github.com/marshallpierce/rust-base64.git" }
+libc = "0.2.71"
+sha2 = "0.8.2"
+sha3 = "0.8.2"
+reqwest = { version = "0.10.6", features = ["blocking"] }
+http = "0.2.1"
+aes-soft = "0.4.0"
+block-modes = "0.3.3"
+hex-literal = "0.2.1"
