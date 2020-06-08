@@ -19,7 +19,6 @@ use sha2::{Sha512, Digest};
 use sha3::{Sha3_512};
 use std::ffi::CString;
 use std::ffi::CStr;
-use std::iter;
 
 // create an alias for convinience
 type Aes128Ebc = Ecb<Aes128, Pkcs7>;
@@ -38,62 +37,6 @@ fn rust_to_c_str_ptr(s: String) ->  *mut c_char {
     let c_str = CString::new(s).unwrap();
     
     return c_str.into_raw()
-}
-
-
-#[no_mangle]
-pub extern "C" fn add_numbers(number1: i32, number2: i32) -> i32 {
-    return number1 + number2;
-}
-
-#[no_mangle]
-pub extern "C" fn sub_numbers(number1: i32, number2: i32) -> i32 {
-    return number1 - number2;
-}
-
-#[no_mangle]
-pub extern "C" fn sq32(number1: f32) -> f32 {
-    return number1 * number1;
-}
-
-#[no_mangle]
-pub extern "C" fn sq64(number1: f64) -> f64 {
-    return number1 * number1;
-}
-
-#[no_mangle]
-pub extern "C" fn gen(length: i32) -> *mut c_char {
-    let repeated = "a".repeat(length as usize);
-    
-    return rust_to_c_str_ptr(repeated);
-}
-
-#[no_mangle]
-pub extern "C" fn how_many_characters(s: *const c_char) -> i32 {
-    let r_str = c_str_ptr_to_rust(s);
-
-    return r_str.chars().count() as i32;
-}
-
-#[no_mangle]
-pub extern "C" fn szia() -> *mut c_char {
-    let r_str = String::from("Szia, Apu!");
-
-    return rust_to_c_str_ptr(r_str);
-}
-
-#[no_mangle]
-pub extern "C" fn tizenhet() -> i32 {
-    return 17;
-}
-
-#[no_mangle]
-pub extern "C" fn theme_song_generate(length: i32) -> *mut c_char {
-    let mut song = String::from("ő ");
-    song.extend(iter::repeat("na ").take(length as usize));
-    song.push_str("Batman! ő");
-
-    return rust_to_c_str_ptr(song);
 }
 
 #[no_mangle]

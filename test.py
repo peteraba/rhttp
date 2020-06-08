@@ -11,29 +11,6 @@ dll = os.path.abspath(args.dll)
 lib = ctypes.cdll.LoadLibrary(dll)
 
 # Definitions
-lib.tizenhet.argtypes = ()
-
-lib.add_numbers.argtypes = (c_int32, c_int32, )
-lib.add_numbers.restype = c_int32
-
-lib.how_many_characters.argtypes = (c_void_p, )
-lib.how_many_characters.restype = c_int32
-
-lib.szia.argtypes = ()
-lib.szia.restype = c_void_p
-
-lib.gen.argtypes = (c_int32, )
-lib.gen.restype = c_void_p
-
-lib.sq32.argtypes = (c_float, )
-lib.sq32.restype = c_float
-
-lib.sq64.argtypes = (c_double, )
-lib.sq64.restype = c_double
-
-lib.theme_song_generate.argtypes = (c_int32, )
-lib.theme_song_generate.restype = c_void_p
-
 lib.free_string.argtypes = (c_void_p, )
 
 lib.base64_encode.argtypes = (c_void_p, )
@@ -53,40 +30,6 @@ lib.get.restype = c_void_p
 
 lib.post_xml.argtypes = (c_void_p, c_void_p, )
 lib.post_xml.restype = c_void_p
-
-# Example calls
-def addTo17Minus3(count):
-    return lib.add_numbers(count,  lib.sub_numbers(lib.tizenhet(), 3))
-    
-def sq32(n):
-    return lib.sq32(n)
-    
-def sq64(n):
-    return lib.sq64(n)
-
-def howMany(text):
-    return lib.how_many_characters(text.encode('utf-8'))
-
-def szia():
-    ptr = lib.szia()
-    try:
-        return ctypes.cast(ptr, ctypes.c_char_p).value.decode('utf-8')
-    finally:
-        lib.free_string(ptr)
-
-def multiplA(count):
-    ptr = lib.gen(count)
-    try:
-        return ctypes.cast(ptr, ctypes.c_char_p).value.decode('utf-8')
-    finally:
-        lib.free_string(ptr)
-
-def themeSongGenerate(count):
-    ptr = lib.theme_song_generate(count)
-    try:
-        return ctypes.cast(ptr, ctypes.c_char_p).value.decode('utf-8')
-    finally:
-        lib.free_string(ptr)
 
 def base64(text):
     ptr1 = lib.base64_encode(text.encode('utf-8'))
@@ -172,13 +115,6 @@ tokenPayload = """<?xml version="1.0" encoding="UTF-8"?>
 	</software>
 </TokenExchangeRequest>"""
 
-print(addTo17Minus3(2))
-print(sq32(1.5))
-print(sq64(2.5))
-print(howMany("12345"))
-print(szia())
-print(multiplA(5))
-print(themeSongGenerate(5))
 print(base64("any carnal pleasure."))
 print(sha512("mysecret", "7b6f7690ae2a5ecdf66b3db2adf91340a680da1ab82561796b8504db942476967369814aa35050dd86838848c1ba703450f2f5e21b0a8e4cff690b855ae5bd8c"))
 print(sha3_512("mysecret", "ef846feafed891792553756277b48e90784eca281f683920551f36b359833b10aab4897765050e398232e3f213fe49c7c50271f339d4797c25dc58c3d7f33f81"))
