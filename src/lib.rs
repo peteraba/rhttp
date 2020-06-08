@@ -1,16 +1,18 @@
-#[macro_use] extern crate hex_literal;
 extern crate base64;
+extern crate hex;
 extern crate libc;
 extern crate sha2;
 extern crate sha3;
 extern crate reqwest;
 extern crate aes_soft as aes;
 extern crate block_modes;
+extern crate hex_literal;
 
 //external crates
 use aes::Aes128;
-use block_modes::{Ecb};
+use block_modes::{BlockMode, Cbc};
 use block_modes::block_padding::Pkcs7;
+use hex_literal::hex;
 use http::HeaderMap;
 use http::header::{CONTENT_TYPE, ACCEPT};
 use libc::c_char;
@@ -21,7 +23,7 @@ use std::ffi::CString;
 use std::ffi::CStr;
 
 // create an alias for convinience
-type Aes128Ebc = Ecb<Aes128, Pkcs7>;
+type Aes128Cbc = Cbc<Aes128, Pkcs7>;
 
 fn c_str_ptr_to_rust(s: *const c_char) -> &'static str {
     let c_str = unsafe {
@@ -101,27 +103,24 @@ pub extern "C" fn aes_encode() -> *mut c_char {
     let key = hex!("000102030405060708090a0b0c0d0e0f");
     let iv = hex!("f0f1f2f3f4f5f6f7f8f9fafbfcfdfeff");
     let plaintext = b"Hello world!";
-    let cipher = Aes128Ebc::new_var(&key, &iv).unwrap();
-    let ciphertext = cipher.encrypt_vec(plaintext);
+    let cipher = Aes128Cbc::new_var(&key, &iv).unwrap();
 
-    let s_str = format!("{:x}", ciphertext);
+    let ciphertext = cipher.encrypt_vec(plaintext);
     
-    return rust_to_c_str_ptr(s_str.to_string());
+    return rust_to_c_str_ptr(hex::encode(ciphertext));
 }
 
-#[no_mangle]
+// #[no_mangle]
 pub extern "C" fn aes_decode() -> *mut c_char {
     let ciphertext = hex!("1b7a4c403124ae2fb52bedc534d82fa8");
 
     let key = hex!("000102030405060708090a0b0c0d0e0f");
     let iv = hex!("f0f1f2f3f4f5f6f7f8f9fafbfcfdfeff");
-    let plaintext = b"Hello world!";
-    let cipher = Aes128Ebc::new_var(&key, &iv).unwrap();
+    let cipher = Aes128Cbc::new_var(&key, &iv).unwrap();
+
     let decrypted_ciphertext = cipher.decrypt_vec(&ciphertext).unwrap();
 
-    let s_str = format!("{:x}", decrypted_ciphertext);
-    
-    return rust_to_c_str_ptr(s_str.to_string());
+    return rust_to_c_str_ptr(hex::encode(decrypted_ciphertext));
 }
 
 #[no_mangle]
