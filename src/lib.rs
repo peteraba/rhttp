@@ -6,13 +6,11 @@ extern crate sha3;
 extern crate reqwest;
 extern crate aes_soft as aes;
 extern crate block_modes;
-extern crate hex_literal;
 
 //external crates
 use aes::Aes128;
-use block_modes::{BlockMode, Cbc};
+use block_modes::{BlockMode, Ecb};
 use block_modes::block_padding::Pkcs7;
-use hex_literal::hex;
 use http::HeaderMap;
 use http::header::{CONTENT_TYPE, ACCEPT};
 use libc::c_char;
@@ -21,25 +19,7 @@ use sha2::{Sha512, Digest};
 use sha3::{Sha3_512};
 use std::ffi::CString;
 use std::ffi::CStr;
-
-// create an alias for convinience
-type Aes128Cbc = Cbc<Aes128, Pkcs7>;
-
-fn c_str_ptr_to_rust(s: *const c_char) -> &'static str {
-    let c_str = unsafe {
-        assert!(!s.is_null());
-
-        CStr::from_ptr(s)
-    };
-
-    return c_str.to_str().unwrap();
-}
-
-fn rust_to_c_str_ptr(s: String) ->  *mut c_char {
-    let c_str = CString::new(s).unwrap();
-    
-    return c_str.into_raw()
-}
+use std::str;
 
 #[no_mangle]
 pub extern "C" fn free_string(s: *mut c_char) {
@@ -73,7 +53,7 @@ pub extern "C" fn base64_decode(s: *const c_char) -> *mut c_char {
 }
 
 #[no_mangle]
-pub extern "C" fn sha512_encode(s: *const c_char) -> *mut c_char {
+pub extern "C" fn sha512_hash(s: *const c_char) -> *mut c_char {
     let r_str = c_str_ptr_to_rust(s);
 
     let mut hasher = Sha512::new();
@@ -86,7 +66,7 @@ pub extern "C" fn sha512_encode(s: *const c_char) -> *mut c_char {
 }
 
 #[no_mangle]
-pub extern "C" fn sha3_512_encode(s: *const c_char) -> *mut c_char {
+pub extern "C" fn sha3_512_hash(s: *const c_char) -> *mut c_char {
     let r_str = c_str_ptr_to_rust(s);
 
     let mut hasher = Sha3_512::new();
@@ -99,28 +79,25 @@ pub extern "C" fn sha3_512_encode(s: *const c_char) -> *mut c_char {
 }
 
 #[no_mangle]
-pub extern "C" fn aes_encode() -> *mut c_char {
-    let key = hex!("000102030405060708090a0b0c0d0e0f");
-    let iv = hex!("f0f1f2f3f4f5f6f7f8f9fafbfcfdfeff");
-    let plaintext = b"Hello world!";
-    let cipher = Aes128Cbc::new_var(&key, &iv).unwrap();
+pub extern "C" fn aes_encrypt(c_plaintext: *const c_char, c_key: *const c_char, flags: i32) -> *mut c_char {
+    let uflags = flags as u32;
+    let input = decode_c(c_plaintext, uflags);
+    let key = decode_c(c_key, uflags >> 4);
 
-    let ciphertext = cipher.encrypt_vec(plaintext);
-    
-    return rust_to_c_str_ptr(hex::encode(ciphertext));
+    let ciphertext = create_cipher(key).encrypt_vec(input.as_slice());
+   
+    return rust_to_c_str_ptr(encode_c(ciphertext, uflags >> 2));
 }
 
-// #[no_mangle]
-pub extern "C" fn aes_decode() -> *mut c_char {
-    let ciphertext = hex!("1b7a4c403124ae2fb52bedc534d82fa8");
+#[no_mangle]
+pub extern "C" fn aes_decrypt(c_ciphertext: *const c_char, c_key: *const c_char, flags: i32) -> *mut c_char {
+    let uflags = flags as u32;
+    let input = decode_c(c_ciphertext, uflags);
+    let key = decode_c(c_key, uflags >> 4);
 
-    let key = hex!("000102030405060708090a0b0c0d0e0f");
-    let iv = hex!("f0f1f2f3f4f5f6f7f8f9fafbfcfdfeff");
-    let cipher = Aes128Cbc::new_var(&key, &iv).unwrap();
+    let plaintext = create_cipher(key).decrypt_vec(input.as_slice()).unwrap();
 
-    let decrypted_ciphertext = cipher.decrypt_vec(&ciphertext).unwrap();
-
-    return rust_to_c_str_ptr(hex::encode(decrypted_ciphertext));
+    return rust_to_c_str_ptr(encode_c(plaintext, uflags >> 2));
 }
 
 #[no_mangle]
@@ -171,4 +148,52 @@ pub extern "C" fn post_xml(c_url: *const c_char, c_body: *const c_char) -> *mut 
     };
 
     return rust_to_c_str_ptr(body);
+}
+
+fn decode_c(c_input: *const c_char, flags: u32) -> Vec<u8> {
+    let input = c_str_ptr_to_rust(c_input);
+
+    if flags % 2 == 1 {
+        return hex::decode(input).unwrap();
+    }
+
+    if (flags >> 1) % 2 == 1 {
+        return base64::decode_config(input, base64::STANDARD).unwrap();
+    }
+
+    return String::from(input).into_bytes();
+}
+
+fn encode_c(raw: Vec<u8>, flags: u32) -> String {
+    if flags % 2 == 1 {
+        return hex::encode(raw);
+    }
+    
+    if (flags >> 1) % 2 == 1 {
+        return base64::encode_config(raw, base64::STANDARD);
+    }
+
+    return String::from_utf8(raw).unwrap();
+}
+
+fn create_cipher(key: Vec<u8>) -> Ecb::<Aes128, Pkcs7> {
+    let iv = Default::default();
+
+    return Ecb::<Aes128, Pkcs7>::new_var(key.as_slice(), iv).unwrap();
+}
+
+fn c_str_ptr_to_rust(s: *const c_char) -> &'static str {
+    let c_str = unsafe {
+        assert!(!s.is_null());
+
+        CStr::from_ptr(s)
+    };
+
+    return c_str.to_str().unwrap();
+}
+
+fn rust_to_c_str_ptr(s: String) ->  *mut c_char {
+    let c_str = CString::new(s).unwrap();
+    
+    return c_str.into_raw()
 }
