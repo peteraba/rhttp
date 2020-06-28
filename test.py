@@ -10,6 +10,13 @@ args = parser.parse_args()
 dll = os.path.abspath(args.dll)
 lib = ctypes.cdll.LoadLibrary(dll)
 
+# Helpers
+def compare(a, b):
+    if a == b:
+        return True
+    
+    return (False, a, b)
+
 # Definitions
 lib.free_string.argtypes = (c_void_p, )
 
@@ -41,112 +48,143 @@ lib.post_json.argtypes = (c_void_p, c_void_p, POINTER(c_int32), )
 lib.post_json.restype = c_void_p
 
 def base64_encode(text):
+    res = ""
+
     ptr1 = lib.base64_encode(text.encode('utf-8'))
+
     try:
-        encoded = ctypes.cast(ptr1, ctypes.c_char_p).value.decode('utf-8')
-        return encoded
+        res = ctypes.cast(ptr1, ctypes.c_char_p).value.decode('utf-8')
     finally:
         lib.free_string(ptr1)
+
+    return res
 
 def base64_decode(text):
+    res = ""
+
     ptr1 = lib.base64_decode(text.encode('utf-8'))
+
     try:
-        decoded = ctypes.cast(ptr1, ctypes.c_char_p).value.decode('utf-8')
-        return decoded
+        res = ctypes.cast(ptr1, ctypes.c_char_p).value.decode('utf-8')
     finally:
         lib.free_string(ptr1)
 
-def sha512(text, expected):
+    return res
+
+def sha512(text):
+    res = ""
+
     ptr1 = lib.sha512_hash(text.encode('utf-8'))
-    try:
-        hashed = ctypes.cast(ptr1, ctypes.c_char_p).value.decode('utf-8')
-        if hashed == expected:
-            return True
 
-        return (hashed == expected, hashed, expected)
+    try:
+        res = ctypes.cast(ptr1, ctypes.c_char_p).value.decode('utf-8')
     finally:
         lib.free_string(ptr1)
 
-def sha3_512(text, expected):
+    return res
+
+def sha3_512(text):
+    res = ""
+
     ptr1 = lib.sha3_512_hash(text.encode('utf-8'))
-    try:
-        hashed = ctypes.cast(ptr1, ctypes.c_char_p).value.decode('utf-8')
-        if hashed == expected:
-            return True
 
-        return (hashed == expected, hashed, expected)
+    try:
+        res = ctypes.cast(ptr1, ctypes.c_char_p).value.decode('utf-8')
     finally:
         lib.free_string(ptr1)
 
-def aes_encrypt(plaintext, key, flags, expected):
+    return res
+
+def aes_encrypt(plaintext, key, flags):
+    res = ""
+
     ptr1 = lib.aes_encrypt(plaintext.encode('utf-8'), key.encode('utf-8'), flags)
-    try:
-        response = ctypes.cast(ptr1, ctypes.c_char_p).value.decode('utf-8')
-        if response == expected:
-            return True
 
-        return response
+    try:
+        res = ctypes.cast(ptr1, ctypes.c_char_p).value.decode('utf-8')
     finally:
         lib.free_string(ptr1)
 
-def aes_decrypt(ciphertext, key, flags, expected):
+    return res
+
+def aes_decrypt(ciphertext, key, flags):
+    res = ""
+
     ptr1 = lib.aes_decrypt(ciphertext.encode('utf-8'), key.encode('utf-8'), flags)
-    try:
-        response = ctypes.cast(ptr1, ctypes.c_char_p).value.decode('utf-8')
-        if response == expected:
-            return True
 
-        return response
+    try:
+        res = ctypes.cast(ptr1, ctypes.c_char_p).value.decode('utf-8')
     finally:
         lib.free_string(ptr1)
+
+    return res
 
 def get_plain(url):
+    code = 0
+    content = ""
+
     c = c_int32(0)
     ptr1 = lib.get_plain(url.encode('utf-8'), byref(c))
+
     try:
         content = ctypes.cast(ptr1, ctypes.c_char_p).value.decode('utf-8')
-
-        return (c.value, content)
+        code = c.value
     finally:
         lib.free_string(ptr1)
+
+    return (code, content)
 
 def post_xml(url, body):
+    code = 0
+    content = ""
+
     c = c_int32(0)
     ptr1 = lib.post_xml(url.encode('utf-8'), body.encode('utf-8'), byref(c))
+
     try:
         content = ctypes.cast(ptr1, ctypes.c_char_p).value.decode('utf-8')
-
-        return (c.value, content)
+        code = c.value
     finally:
         lib.free_string(ptr1)
+
+    return (code, content)
 
 def post_json(url, body):
+    code = 0
+    content = ""
+
     c = c_int32(0)
     ptr1 = lib.post_json(url.encode('utf-8'), body.encode('utf-8'), byref(c))
+
     try:
         content = ctypes.cast(ptr1, ctypes.c_char_p).value.decode('utf-8')
-
-        return (c.value, content)
+        code = c.value
     finally:
         lib.free_string(ptr1)
 
-lorem_ipsum_hu = 'Vényítés hehez egyébként bodta, hogy a redés abban a pánságban havóval vátszik, amikor végre tapolyhoz irdíti majd a tűnőségöket. A rémetleg robákban a kató főzés hompai által a zsintőnél pidő hűsítő birt olyan kamatokat logazott fel, amelyek súlyosan szaborázják a zsintő bormogtatos rozásait. Ennek megfelelően az ömlés hompai a kanyós felebelő manákat és kirderedéseket a hályogó talányozott pachok felé kozatosék. 1 csengyedemer húzatás, 2 feke lenemek, 1 pikkely trozás, nészer, 1 vice párom, 4 vice haság, 1 ratyi melelő.'
+    return (code, content)
+
+lorem_ipsum_hu = 'Vényítés hehez egyébként bodta, hogy a redés abban a pánságban havóval vátszik, amikor végre tapolyhoz irdíti majd a tűnőségöket.'
 lorem_ipsum_hu_encoded = base64_encode(lorem_ipsum_hu)
 lorem_ipsum_hu_decoded = base64_decode(lorem_ipsum_hu_encoded)
-print(lorem_ipsum_hu == lorem_ipsum_hu_decoded)
-print(sha512("mysecret", "7b6f7690ae2a5ecdf66b3db2adf91340a680da1ab82561796b8504db942476967369814aa35050dd86838848c1ba703450f2f5e21b0a8e4cff690b855ae5bd8c"))
-print(sha3_512("mysecret", "ef846feafed891792553756277b48e90784eca281f683920551f36b359833b10aab4897765050e398232e3f213fe49c7c50271f339d4797c25dc58c3d7f33f81"))
+print(compare(lorem_ipsum_hu, lorem_ipsum_hu_decoded))
+
+print(compare(sha512("mysecret"), "7b6f7690ae2a5ecdf66b3db2adf91340a680da1ab82561796b8504db942476967369814aa35050dd86838848c1ba703450f2f5e21b0a8e4cff690b855ae5bd8c"))
+
+print(compare(sha512("mysecret"), "7b6f7690ae2a5ecdf66b3db2adf91340a680da1ab82561796b8504db942476967369814aa35050dd86838848c1ba703450f2f5e21b0a8e4cff690b855ae5bd8c"))
+
+print(compare(sha3_512("mysecret"), "ef846feafed891792553756277b48e90784eca281f683920551f36b359833b10aab4897765050e398232e3f213fe49c7c50271f339d4797c25dc58c3d7f33f81"))
 
 # input:  plain   -> 0000 0000
 # output: base64  -> 0000 1000
 # key:    hex     -> 0001 0000
-print(aes_encrypt("hello", "000102030405060708090a0b0c0d0e0f", 0x18, 'XYdJ4q91MbK/ZmHp5drwEg=='))
+print(compare(aes_encrypt("hello", "000102030405060708090a0b0c0d0e0f", 0x18), 'XYdJ4q91MbK/ZmHp5drwEg=='))
 
 # input:  base64  -> 0000 0010
 # output: plain   -> 0000 0000
 # key:    hex     -> 0001 0000
-print(aes_decrypt("XYdJ4q91MbK/ZmHp5drwEg==", "000102030405060708090a0b0c0d0e0f", 0x12, 'hello'))
+print(compare(aes_decrypt("XYdJ4q91MbK/ZmHp5drwEg==", "000102030405060708090a0b0c0d0e0f", 0x12), 'hello'))
 
-print(get_plain("http://example.com/"))
-print(post_xml("http://example.com/xmlEndpoint", '<?xml version="1.0" ?></xml>'))
-print(post_json("http://example.com/xmlEndpoint", '{}'))
+print(get_plain("https://reqbin.com/echo"))
+print(post_xml("https://reqbin.com/echo/post/xml", '<?xml version="1.0" ?></xml>'))
+print(post_json("https://reqbin.com/echo/post/json", '{}'))
