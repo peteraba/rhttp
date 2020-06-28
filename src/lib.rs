@@ -101,7 +101,7 @@ pub extern "C" fn aes_decrypt(c_ciphertext: *const c_char, c_key: *const c_char,
 }
 
 #[no_mangle]
-pub extern "C" fn get(c_url: *const c_char, code_ref: &mut i32) -> *mut c_char {
+pub extern "C" fn get_plain(c_url: *const c_char, code_ref: &mut i32) -> *mut c_char {
     let url = c_str_ptr_to_rust(c_url);
 
     let resp = reqwest::blocking::get(url);
@@ -128,6 +128,107 @@ pub extern "C" fn get(c_url: *const c_char, code_ref: &mut i32) -> *mut c_char {
 }
 
 #[no_mangle]
+pub extern "C" fn post_plain(c_url: *const c_char, c_body: *const c_char, code_ref: &mut i32) -> *mut c_char {
+    let url = c_str_ptr_to_rust(c_url);
+    let body = c_str_ptr_to_rust(c_body);
+
+    let client = Client::new();
+
+    let resp = client.post(url)
+        .body(body)
+        .send();
+
+    let status = match &resp {
+        Ok(r) => r.status().as_u16() as i32,
+        Err(_) => 0,
+    };
+
+    *code_ref = status;
+
+    let body = match resp {
+        Ok(r) =>  r.text(),
+        Err(error) => Ok(error.to_string()),
+    };
+
+    let content = match body {
+        Ok(content) => content,
+        Err(error) => error.to_string(),
+    };
+
+    return rust_to_c_str_ptr(content);
+}
+
+#[no_mangle]
+pub extern "C" fn get_xml(c_url: *const c_char, code_ref: &mut i32) -> *mut c_char {
+    let url = c_str_ptr_to_rust(c_url);
+
+    let mut headers = HeaderMap::new();
+
+    headers.insert(CONTENT_TYPE, "application/xml".parse().unwrap());
+    headers.insert(ACCEPT, "application/xml".parse().unwrap());
+
+    let client = Client::new();
+
+    let resp = client.get(url)
+        .headers(headers)
+        .send();
+
+    let status = match &resp {
+        Ok(r) => r.status().as_u16() as i32,
+        Err(_) => 0,
+    };
+
+    *code_ref = status;
+
+    let body = match resp {
+        Ok(r) =>  r.text(),
+        Err(error) => Ok(error.to_string()),
+    };
+
+    let content = match body {
+        Ok(content) => content,
+        Err(error) => error.to_string(),
+    };
+
+    return rust_to_c_str_ptr(content);
+}
+
+#[no_mangle]
+pub extern "C" fn get_json(c_url: *const c_char, code_ref: &mut i32) -> *mut c_char {
+    let url = c_str_ptr_to_rust(c_url);
+
+    let mut headers = HeaderMap::new();
+
+    headers.insert(CONTENT_TYPE, "application/json".parse().unwrap());
+    headers.insert(ACCEPT, "application/json".parse().unwrap());
+
+    let client = Client::new();
+
+    let resp = client.get(url)
+        .headers(headers)
+        .send();
+
+    let status = match &resp {
+        Ok(r) => r.status().as_u16() as i32,
+        Err(_) => 0,
+    };
+
+    *code_ref = status;
+
+    let body = match resp {
+        Ok(r) =>  r.text(),
+        Err(error) => Ok(error.to_string()),
+    };
+
+    let content = match body {
+        Ok(content) => content,
+        Err(error) => error.to_string(),
+    };
+
+    return rust_to_c_str_ptr(content);
+}
+
+#[no_mangle]
 pub extern "C" fn post_xml(c_url: *const c_char, c_body: *const c_char, code_ref: &mut i32) -> *mut c_char {
     let url = c_str_ptr_to_rust(c_url);
     let body = c_str_ptr_to_rust(c_body);
@@ -136,6 +237,43 @@ pub extern "C" fn post_xml(c_url: *const c_char, c_body: *const c_char, code_ref
 
     headers.insert(CONTENT_TYPE, "application/xml".parse().unwrap());
     headers.insert(ACCEPT, "application/xml".parse().unwrap());
+
+    let client = Client::new();
+
+    let resp = client.post(url)
+        .headers(headers)
+        .body(body)
+        .send();
+
+    let status = match &resp {
+        Ok(r) => r.status().as_u16() as i32,
+        Err(_) => 0,
+    };
+
+    *code_ref = status;
+
+    let body = match resp {
+        Ok(r) =>  r.text(),
+        Err(error) => Ok(error.to_string()),
+    };
+
+    let content = match body {
+        Ok(content) => content,
+        Err(error) => error.to_string(),
+    };
+
+    return rust_to_c_str_ptr(content);
+}
+
+#[no_mangle]
+pub extern "C" fn post_json(c_url: *const c_char, c_body: *const c_char, code_ref: &mut i32) -> *mut c_char {
+    let url = c_str_ptr_to_rust(c_url);
+    let body = c_str_ptr_to_rust(c_body);
+
+    let mut headers = HeaderMap::new();
+
+    headers.insert(CONTENT_TYPE, "application/json".parse().unwrap());
+    headers.insert(ACCEPT, "application/json".parse().unwrap());
 
     let client = Client::new();
 
