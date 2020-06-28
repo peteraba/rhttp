@@ -79,5 +79,5 @@ fn get(c_url: *const c_char) -> *mut c_char
 ### HTTP(s) POST with XML headers
 
 ```rust
-fn post_xml(c_url: *const c_char, c_body: *const c_char) -> *mut c_char
+fn post_xml(c_url: *const c_char, c_body: *const c_char, code_ref: &mut i32) -> *mut c_char {}
 ```

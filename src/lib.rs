@@ -101,10 +101,17 @@ pub extern "C" fn aes_decrypt(c_ciphertext: *const c_char, c_key: *const c_char,
 }
 
 #[no_mangle]
-pub extern "C" fn get(c_url: *const c_char) -> *mut c_char {
+pub extern "C" fn get(c_url: *const c_char, code_ref: &mut i32) -> *mut c_char {
     let url = c_str_ptr_to_rust(c_url);
 
     let resp = reqwest::blocking::get(url);
+
+    let status = match &resp {
+        Ok(r) => r.status().as_u16() as i32,
+        Err(_) => 0,
+    };
+
+    *code_ref = status;
 
     let body = match resp {
         Ok(r) =>  r.text(),
@@ -121,7 +128,7 @@ pub extern "C" fn get(c_url: *const c_char) -> *mut c_char {
 }
 
 #[no_mangle]
-pub extern "C" fn post_xml(c_url: *const c_char, c_body: *const c_char) -> *mut c_char {
+pub extern "C" fn post_xml(c_url: *const c_char, c_body: *const c_char, code_ref: &mut i32) -> *mut c_char {
     let url = c_str_ptr_to_rust(c_url);
     let body = c_str_ptr_to_rust(c_body);
 
@@ -137,17 +144,24 @@ pub extern "C" fn post_xml(c_url: *const c_char, c_body: *const c_char) -> *mut 
         .body(body)
         .send();
 
+    let status = match &resp {
+        Ok(r) => r.status().as_u16() as i32,
+        Err(_) => 0,
+    };
+
+    *code_ref = status;
+
     let body = match resp {
         Ok(r) =>  r.text(),
         Err(error) => Ok(error.to_string()),
     };
 
-    let body = match body {
+    let content = match body {
         Ok(content) => content,
         Err(error) => error.to_string(),
     };
 
-    return rust_to_c_str_ptr(body);
+    return rust_to_c_str_ptr(content);
 }
 
 fn decode_c(c_input: *const c_char, flags: u32) -> Vec<u8> {
