@@ -173,7 +173,7 @@ print(aes_decrypt("XYdJ4q91MbK/ZmHp5drwEg==", "000102030405060708090a0b0c0d0e0f"
 ### HTTP(s) GET
 
 ```rust
-fn get(c_url: *const c_char, code_ref: &mut i32) -> *mut c_char {}
+fn get_plain(c_url: *const c_char, code_ref: &mut i32) -> *mut c_char {}
 fn get_xml(c_url: *const c_char, code_ref: &mut i32) -> *mut c_char {}
 fn get_json(c_url: *const c_char, code_ref: &mut i32) -> *mut c_char {}
 ```
@@ -181,12 +181,12 @@ fn get_json(c_url: *const c_char, code_ref: &mut i32) -> *mut c_char {}
 Correct usage in python:
 
 ```python3
-lib.get.argtypes = (c_void_p, POINTER(c_int32), )
-lib.get.restype = c_void_p
+lib.get_plain.argtypes = (c_void_p, POINTER(c_int32), )
+lib.get_plain.restype = c_void_p
 
-def get(url):
+def get_plain(url):
     c = c_int32(0)
-    ptr1 = lib.get(url.encode('utf-8'), byref(c))
+    ptr1 = lib.get_plain(url.encode('utf-8'), byref(c))
     try:
         content = ctypes.cast(ptr1, ctypes.c_char_p).value.decode('utf-8')
 
