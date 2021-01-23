@@ -26,11 +26,11 @@ lib.base64_encode.restype = c_void_p
 lib.base64_decode.argtypes = (c_void_p, )
 lib.base64_decode.restype = c_void_p
 
-lib.zip_base64_encode.argtypes = (c_void_p, )
-lib.zip_base64_encode.restype = c_void_p
+lib.gzip_base64_encode.argtypes = (c_void_p, )
+lib.gzip_base64_encode.restype = c_void_p
 
-lib.zip_base64_decode.argtypes = (c_void_p, )
-lib.zip_base64_decode.restype = c_void_p
+lib.gzip_base64_decode.argtypes = (c_void_p, )
+lib.gzip_base64_decode.restype = c_void_p
 
 lib.sha512_hash.argtypes = (c_void_p, )
 lib.sha512_hash.restype = c_void_p
@@ -77,10 +77,10 @@ def base64_decode(text):
 
     return res
 
-def zip_base64_encode(text):
+def gzip_base64_encode(text):
     res = ""
 
-    ptr1 = lib.zip_base64_encode(text.encode('utf-8'))
+    ptr1 = lib.gzip_base64_encode(text.encode('utf-8'))
 
     try:
         res = ctypes.cast(ptr1, ctypes.c_char_p).value.decode('utf-8')
@@ -89,10 +89,10 @@ def zip_base64_encode(text):
 
     return res
 
-def zip_base64_decode(text):
+def gzip_base64_decode(text):
     res = ""
 
-    ptr1 = lib.zip_base64_decode(text.encode('utf-8'))
+    ptr1 = lib.gzip_base64_decode(text.encode('utf-8'))
 
     try:
         res = ctypes.cast(ptr1, ctypes.c_char_p).value.decode('utf-8')
@@ -224,9 +224,9 @@ print(compare(aes_decrypt("XYdJ4q91MbK/ZmHp5drwEg==", "000102030405060708090a0b0
 # print(post_json("https://reqbin.com/echo/post/json", '{}'))
 
 text = 'abc' * 10000
-compressed = zip_base64_encode(text)
+compressed = gzip_base64_encode(text)
 print(len(text) > len(compressed))
-print(compare(text, zip_base64_decode(compressed)))
+print(compare(text, gzip_base64_decode(compressed)))
 
 # data = "H4sIAAAAAAAAAM1YS2+jOhTe31+Buk5iIH1MKwaJJDRFeQpopGbnG5zGEq+LIUqWs+x6pFncv5M/dm1IeEwxSUd3NM0qnPOdY3+fz7ENiuFvA7xCAxhDYee5Pvl6tYnj8AEAstogD5KOD7ed12Db2SRgZmlA7ojAoegr9S+B/hScJZgm3t8oUq0l6Mr3oijeAVGWpC+A/hVlBVRRlUiDkISNj1SZhrRFqS0VAYWzEjOB2M8sZWthKVufEHSqntRLkjB0MYoMfx28d1cgNtyVJ16LjeEuhHuazlEl8V6U5C4lUTLyI7cw7gcOZa+A018+eBUkfrxPQdfXCig91lMAF3LIuU6hh9SJNnzRTGE+s2xNWJp2p8iT+ptTaI4TIUIaWBDshS46iysYRxnHp+cj5aiBcx4ZBiSGbgqUpO4XBZQMZ8bE8V7tPQ+0uW7ZdEj22BwBHQfHOPChe2Q1QDHErjp4nmoLwzx8GwrPdl8T5PYtFZOH5isGLpCsWCQurIDUl72ySkgceI1dcYJ8uCvE++6NfH2+K6jglw2RTyUtyiu2YIYws+2n2fRKGGujwzfrUZ9Obc20D98Fa3n4sdDtkb7U7WKIhno+QT5lPcu3f6See4cfTEdzcnibvhjC4V9b6Irtrvwbi/rsMhQQTlEfD4Km+ZwwfXrUvAbRXrWMyXxsPBr6ID+Lcl9jhgFy8RZFe96JVvHzCi+KkL861cgjI1iy1Aeh3WoD/VdksrySAirPnA0buesedl3svxq+g1cwDiJ1DV2C6NLU+erT0Gb2kB9PULwJHLWvWU+0NCs2Dk1INtoqrf+6GfDcjeprYYhgBH16GZjTajdz2UuOmgJqqJDc+f4ecRp0jH1UV5dUPJ70zHXc2uhalZ74cH0XsvqnHVZoEUcJysLrvPxcA0RWEQ5Zu9KWfhu/6MOWIMk3wuFtoVuCJkxmPaE3no1GWfYyvj7rPwmk60T3FUon/18PTXwcz9YTBEkS0WUy9L6ugKqRHziP2EXvThKzkOzxDJy20E8RzMJXR/NY0RGL7U54jVHT7Y3hF+za5se03lUx06tkaQ4dRgEh2Xil4dLJ8t2/kDKXoBHB2YEv1CQD/nIfyH+4D8b6gnZCa2Etx/ZDr3UjisO2MWzR9jAnnQcqnvBot0bW8kFrzU2jZS8+Z2vc3n20NaoRn7w10sn+763RnPX3tEZ+sNQcH6eTxUo8D9bdOOjLVuo5Rz17u8wXYHtG/BK8pIRK354qwWXfB/IwHRtS1crM3ljOMj2pkSZjnzKaLwnvqdU4Ls1QkKr38RlxZpsnerf4uef4MQRUvoYooPQtR/0PR5RcPNkRAAA="
 # print(zip_base64_decode(data))

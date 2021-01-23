@@ -83,23 +83,23 @@ print(base64_decode('TnVuYyBzdXNjaXBpdCBsaWJlcm8gdmVsaXQsIHV0IHZlbmVuYXRpcyBkdWk
 ### GZipped Base64 encode and decode
 
 ```rust
-fn zip_base64_decode(s: *const c_char) -> *mut c_char {}
-fn zip_base64_encode(s: *const c_char) -> *mut c_char {}
+fn gzip_base64_decode(s: *const c_char) -> *mut c_char {}
+fn gzip_base64_encode(s: *const c_char) -> *mut c_char {}
 ```
 
 Correct usage in python:
 
 ```python3
-lib.zip_base64_encode.argtypes = (c_void_p, )
-lib.zip_base64_encode.restype = c_void_p
+lib.gzip_base64_encode.argtypes = (c_void_p, )
+lib.gzip_base64_encode.restype = c_void_p
 
-lib.zip_base64_decode.argtypes = (c_void_p, )
-lib.zip_base64_decode.restype = c_void_p
+lib.gzip_base64_decode.argtypes = (c_void_p, )
+lib.gzip_base64_decode.restype = c_void_p
 
-def zip_base64_encode(text):
+def gzip_base64_encode(text):
     res = ""
 
-    ptr1 = lib.zip_base64_encode(text.encode('utf-8'))
+    ptr1 = lib.gzip_base64_encode(text.encode('utf-8'))
 
     try:
         res = ctypes.cast(ptr1, ctypes.c_char_p).value.decode('utf-8')
@@ -108,10 +108,10 @@ def zip_base64_encode(text):
 
     return res
 
-def zip_base64_decode(text):
+def gzip_base64_decode(text):
     res = ""
 
-    ptr1 = lib.zip_base64_decode(text.encode('utf-8'))
+    ptr1 = lib.gzip_base64_decode(text.encode('utf-8'))
 
     try:
         res = ctypes.cast(ptr1, ctypes.c_char_p).value.decode('utf-8')
@@ -120,9 +120,9 @@ def zip_base64_decode(text):
 
     return res
 
-print(zip_base64_encode('abc' * 10000))
-print(zip_base64_encode('Nunc suscipit libero velit, ut venenatis dui aliquet eu.'))
-print(zip_base64_decode('H4sIABd1DGAAAw3GyQ2AQAwDwFZcAKIUeliWPCxF4YhN/fCbzTXR7smLQnKP58QbSS2wflXUEBuHiZG8HUJ4/QBu/ZCdOAAAAA=='))
+print(gzip_base64_encode('abc' * 10000))
+print(gzip_base64_encode('Nunc suscipit libero velit, ut venenatis dui aliquet eu.'))
+print(gzip_base64_decode('H4sIABd1DGAAAw3GyQ2AQAwDwFZcAKIUeliWPCxF4YhN/fCbzTXR7smLQnKP58QbSS2wflXUEBuHiZG8HUJ4/QBu/ZCdOAAAAA=='))
 ```
 
 ### Hashing via SHA-512

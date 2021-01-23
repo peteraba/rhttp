@@ -56,7 +56,7 @@ pub extern "C" fn base64_decode(s: *const c_char) -> *mut c_char {
 }
 
 #[no_mangle]
-pub extern "C" fn zip_base64_encode(s: *const c_char) -> *mut c_char {
+pub extern "C" fn gzip_base64_encode(s: *const c_char) -> *mut c_char {
     let r_str = c_str_ptr_to_rust(s);
     let r_bytes = r_str.as_bytes();
 
@@ -71,7 +71,7 @@ pub extern "C" fn zip_base64_encode(s: *const c_char) -> *mut c_char {
 
 
 #[no_mangle]
-pub extern "C" fn zip_base64_decode(s: *const c_char) -> *mut c_char {
+pub extern "C" fn gzip_base64_decode(s: *const c_char) -> *mut c_char {
     let r_str = c_str_ptr_to_rust(s);
 
     let buf = base64::decode_config(r_str, base64::STANDARD).unwrap();
