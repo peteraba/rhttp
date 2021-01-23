@@ -9,12 +9,12 @@ name = "rhttp"
 crate-type = ["cdylib"]
 
 [dependencies]
-aes-soft = "0.4.0"
-base64 = "0.12.1"
-block-modes = "0.4.0"
+aes-soft = "0.6.4"
+base64 = "0.13.0"
+block-modes = "0.7.0"
 hex = "0.4.2"
 http = "0.2.1"
-libc = "0.2.71"
+libc = "0.2.82"
 reqwest = { version = "0.10.6", features = ["blocking"] }
-sha2 = "0.8.2"
-sha3 = "0.8.2"
+sha2 = "0.9.2"
+sha3 = "0.9.1"

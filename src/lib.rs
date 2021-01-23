@@ -57,8 +57,8 @@ pub extern "C" fn sha512_hash(s: *const c_char) -> *mut c_char {
     let r_str = c_str_ptr_to_rust(s);
 
     let mut hasher = Sha512::new();
-    hasher.input(r_str);
-    let hash = hasher.result();
+    hasher.update(r_str);
+    let hash = hasher.finalize();
 
     let s_str = format!("{:x}", hash);
     
@@ -70,8 +70,8 @@ pub extern "C" fn sha3_512_hash(s: *const c_char) -> *mut c_char {
     let r_str = c_str_ptr_to_rust(s);
 
     let mut hasher = Sha3_512::new();
-    hasher.input(r_str);
-    let hash = hasher.result();
+    hasher.update(r_str);
+    let hash = hasher.finalize();
 
     let s_str = format!("{:x}", hash);
     
