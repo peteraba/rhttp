@@ -45,21 +45,84 @@ fn base64_encode(s: *const c_char) -> *mut c_char {}
 Correct usage in python:
 
 ```python3
-lib.sha512_hash.argtypes = (c_void_p, )
-lib.sha512_hash.restype = c_void_p
+lib.base64_encode.argtypes = (c_void_p, )
+lib.base64_encode.restype = c_void_p
 
-def sha512(text, expected):
-    ptr1 = lib.sha512_hash(text.encode('utf-8'))
+lib.base64_decode.argtypes = (c_void_p, )
+lib.base64_decode.restype = c_void_p
+
+def base64_encode(text):
+    res = ""
+
+    ptr1 = lib.base64_encode(text.encode('utf-8'))
+
     try:
-        hashed = ctypes.cast(ptr1, ctypes.c_char_p).value.decode('utf-8')
-        if hashed == expected:
-            return True
-
-        return (hashed == expected, hashed, expected)
+        res = ctypes.cast(ptr1, ctypes.c_char_p).value.decode('utf-8')
     finally:
         lib.free_string(ptr1)
 
-print(sha512("mysecret", "7b6f7690ae2a5ecdf66b3db2adf91340a680da1ab82561796b8504db942476967369814aa35050dd86838848c1ba703450f2f5e21b0a8e4cff690b855ae5bd8c"))
+    return res
+
+def base64_decode(text):
+    res = ""
+
+    ptr1 = lib.base64_decode(text.encode('utf-8'))
+
+    try:
+        res = ctypes.cast(ptr1, ctypes.c_char_p).value.decode('utf-8')
+    finally:
+        lib.free_string(ptr1)
+
+    return res
+
+print(base64_encode('Nunc suscipit libero velit, ut venenatis dui aliquet eu.'))
+print(base64_decode('TnVuYyBzdXNjaXBpdCBsaWJlcm8gdmVsaXQsIHV0IHZlbmVuYXRpcyBkdWkgYWxpcXVldCBldS4='))
+```
+
+
+### GZipped Base64 encode and decode
+
+```rust
+fn zip_base64_decode(s: *const c_char) -> *mut c_char {}
+fn zip_base64_encode(s: *const c_char) -> *mut c_char {}
+```
+
+Correct usage in python:
+
+```python3
+lib.zip_base64_encode.argtypes = (c_void_p, )
+lib.zip_base64_encode.restype = c_void_p
+
+lib.zip_base64_decode.argtypes = (c_void_p, )
+lib.zip_base64_decode.restype = c_void_p
+
+def zip_base64_encode(text):
+    res = ""
+
+    ptr1 = lib.zip_base64_encode(text.encode('utf-8'))
+
+    try:
+        res = ctypes.cast(ptr1, ctypes.c_char_p).value.decode('utf-8')
+    finally:
+        lib.free_string(ptr1)
+
+    return res
+
+def zip_base64_decode(text):
+    res = ""
+
+    ptr1 = lib.zip_base64_decode(text.encode('utf-8'))
+
+    try:
+        res = ctypes.cast(ptr1, ctypes.c_char_p).value.decode('utf-8')
+    finally:
+        lib.free_string(ptr1)
+
+    return res
+
+print(zip_base64_encode('abc' * 10000))
+print(zip_base64_encode('Nunc suscipit libero velit, ut venenatis dui aliquet eu.'))
+print(zip_base64_decode('H4sIABd1DGAAAw3GyQ2AQAwDwFZcAKIUeliWPCxF4YhN/fCbzTXR7smLQnKP58QbSS2wflXUEBuHiZG8HUJ4/QBu/ZCdOAAAAA=='))
 ```
 
 ### Hashing via SHA-512

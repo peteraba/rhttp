@@ -1,11 +1,12 @@
+extern crate aes_soft as aes;
 extern crate base64;
+extern crate block_modes;
 extern crate hex;
 extern crate libc;
+extern crate libflate;
+extern crate reqwest;
 extern crate sha2;
 extern crate sha3;
-extern crate reqwest;
-extern crate aes_soft as aes;
-extern crate block_modes;
 
 //external crates
 use aes::Aes128;
@@ -14,11 +15,13 @@ use block_modes::block_padding::Pkcs7;
 use http::HeaderMap;
 use http::header::{CONTENT_TYPE, ACCEPT, HeaderValue};
 use libc::c_char;
+use libflate::gzip::{Encoder, Decoder};
 use reqwest::blocking::{Client};
 use sha2::{Sha512, Digest};
 use sha3::{Sha3_512};
 use std::ffi::CString;
 use std::ffi::CStr;
+use std::io::{self, Read};
 use std::str;
 
 #[no_mangle]
@@ -48,6 +51,36 @@ pub extern "C" fn base64_decode(s: *const c_char) -> *mut c_char {
     let buf = base64::decode_config(r_str, base64::STANDARD).unwrap();
 
     let s_str = std::str::from_utf8(&buf).unwrap();
+    
+    return rust_to_c_str_ptr(s_str.to_string());
+}
+
+#[no_mangle]
+pub extern "C" fn zip_base64_encode(s: *const c_char) -> *mut c_char {
+    let r_str = c_str_ptr_to_rust(s);
+    let r_bytes = r_str.as_bytes();
+
+    let mut encoder = Encoder::new(Vec::new()).unwrap();
+    io::copy(&mut &r_bytes[..], &mut encoder).unwrap();
+    let encoded_data = encoder.finish().into_result().unwrap();
+
+    let s = base64::encode(encoded_data);
+
+    return rust_to_c_str_ptr(s);
+}
+
+
+#[no_mangle]
+pub extern "C" fn zip_base64_decode(s: *const c_char) -> *mut c_char {
+    let r_str = c_str_ptr_to_rust(s);
+
+    let buf = base64::decode_config(r_str, base64::STANDARD).unwrap();
+
+    let mut decoder = Decoder::new(&buf[..]).unwrap();
+    let mut decoded_data = Vec::new();
+    decoder.read_to_end(&mut decoded_data).unwrap();
+
+    let s_str = std::str::from_utf8(&decoded_data).unwrap();
     
     return rust_to_c_str_ptr(s_str.to_string());
 }
